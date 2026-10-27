@@ -48,7 +48,7 @@ button.on,button.pri{background:var(--c);color:#fff}
 <div id="app"></div>
 </main>
 <script>
-var P=[['cuaderno','cuadernos','📒'],['bocadillo','bocadillos','🥪'],['libro','libros','📚'],['helado','helados','🍦'],['balón','balones','⚽'],['bolígrafo','bolígrafos','🖊️']];
+var P=[['cuaderno','cuadernos','📒',2,6],['bocadillo','bocadillos','🥪',3,7],['libro','libros','📚',5,9],['helado','helados','🍦',2,5],['balón','balones','⚽',6,9],['bolígrafo','bolígrafos','🖊️',2,4]];
 var S={lv:1,lt:{},ord:[],mode:'mix',ok:0,streak:0,ch:null,c:[],pool:0,ans:0,done:false,rA:false,rB:null};
 var $=function(i){return document.getElementById(i)};
 var NM={T:'Precio de la compra',U:'Precio de cada artículo',V:'Artículos'};
@@ -61,9 +61,11 @@ function lc(){return S.lv==1?'':'<p style="margin:.2rem 0">'+(S.rL?'✓':'✗')+
 function init(){var h=S.ch,i;S.c=[];S.pool=h.T;
 if(h.m=='u')for(i=0;i<h.V;i++)S.c.push(0);
 if(h.m=='t'){for(i=0;i<h.V;i++)S.c.push(h.U);S.pool=0}}
+var H=[];
+function pair(f){var r,k,i=0;do{r=f();k=r[0]+'x'+r[1];i++}while((H.indexOf(k)>=0||r[0]==r[1])&&i<40);H.push(k);if(H.length>10)H.shift();return r}
 function next(){
-var m=S.mode=='mix'||S.mode=='sl'?['u','v','t'][R(0,2)]:S.mode,U=R(2,Math.min(7,5+Math.floor(S.ok/3))),V=R(2,Math.min(10,7+Math.floor(S.ok/2)));
-S.ch={m:m,U:U,V:V,T:U*V,p:P[R(0,P.length-1)]};S.done=false;S.lt={};S.ord=['T','U','V'].sort(function(){return Math.random()-.5});S.ans=0;init();draw()}
+var m=S.mode=='mix'||S.mode=='sl'?['u','v','t'][R(0,2)]:S.mode,p=P[R(0,P.length-1)],r=pair(function(){return [R(p[3],p[4]),R(2,9)]}),U=r[0],V=r[1];
+S.ch={m:m,U:U,V:V,T:U*V,p:p};S.done=false;S.lt={};S.ord=['T','U','V'].sort(function(){return Math.random()-.5});S.ans=0;init();draw()}
 function move(f,j){if(f<0){if(S.pool<=0)return;S.pool--}else{if(S.c[f]<=0)return;S.c[f]--}S.c[j]++}
 function drop(s,el){var f=s=='p'?-1:+s,t=el&&el.closest?el.closest('[data-can],#pool,#newc'):null;
 if(t){if(t.id=='pool'){if(f>=0){S.c[f]--;S.pool++}}
@@ -100,7 +102,7 @@ o+='</div>'+(S.lv==2&&!S.done?idc(vals,q):'')+'<div class="card w">';
 if(!S.done)o+='<p style="margin:0 0 .4rem">'+(S.lv==1?'¿Cuánto vale <b>'+q+'</b>?':'Tu respuesta:')+''+{u:' (precio de cada artículo, en €)',v:' (número de artículos)',t:' (precio de la compra, en €)'}[m]+'</p><div class="ans"><button onclick="st(-1)" aria-label="menos">−</button><output id="an">'+(S.ans||'?')+'</output><button onclick="st(1)" aria-label="más">+</button><button class="pri" onclick="chk()">Terminar</button></div><p class="sc">Cuando creas que lo tienes, escribe la respuesta y pulsa Terminar.</p>';
 else{o+='<p class="msg '+(good?'ok':'bad')+'">'+(good?'¡Muy bien!':'Esta vez no ha salido. Fíjate en la explicación.')+'</p>';
 if(b!==null)o+='<p style="margin:.2rem 0">'+(b?'✓':'✗')+' Reparto de las monedas'+(b?'':m=='u'?': no hay las mismas en cada artículo, o quedan monedas en el monedero':': tendría que haber '+h.V+' artículos con '+h.U+' monedas cada uno')+'</p>';
-o+=lc()+'<p style="margin:.2rem 0">'+(a?'✓':'✗')+' Respuesta: '+q+' = '+e+(m=='v'?'':' €')+(a?'':' (tú pusiste '+(S.ans||'nada')+')')+'</p><div class="eq">U × V = T → '+h.U+' € × '+h.V+' = '+h.T+' €</div><p style="margin:.2rem 0">'+h.V+' '+g[1]+' a '+h.U+' € cada uno cuestan '+h.T+' € en total.</p>'+(m=='t'?'':'<p style="margin:.2rem 0">'+(m=='u'?h.T+' € ÷ '+h.V+' = '+h.U+' €':h.T+' € ÷ '+h.U+' € = '+h.V)+' porque '+h.U+' × '+h.V+' = '+h.T+'.</p>')+'<div class="row">'+Array(h.V+1).join('<span class="it"><span class="em">'+em+'</span><span class="bx">'+coin(h.U,null)+'</span></span>')+'</div><div class="ctl"><button class="pri" onclick="next()">Siguiente ▶</button></div>'}
+o+=lc()+'<p style="margin:.2rem 0">'+(a?'✓':'✗')+' Respuesta: '+q+' = '+e+(m=='v'?'':' €')+(a?'':' (tú pusiste '+(S.ans||'nada')+')')+'</p><div class="eq">'+(m=='t'?'T = U × V → '+h.U+' € × '+h.V+' = '+h.T+' €':m=='u'?'U = T ÷ V → '+h.T+' € ÷ '+h.V+' = '+h.U+' €':'V = T ÷ U → '+h.T+' € ÷ '+h.U+' € = '+h.V)+'</div><p style="margin:.2rem 0">'+h.V+' '+g[1]+' a '+h.U+' € cada uno cuestan '+h.T+' € en total.</p>'+(m=='t'?'':'<p style="margin:.2rem 0">Comprobación con la multiplicación: U × V = T → '+h.U+' € × '+h.V+' = '+h.T+' €.</p>')+'<div class="row">'+Array(h.V+1).join('<span class="it"><span class="em">'+em+'</span><span class="bx">'+coin(h.U,null)+'</span></span>')+'</div><div class="ctl"><button class="pri" onclick="next()">Siguiente ▶</button></div>'}
 $('app').innerHTML=o+'</div>';
 $('tabs').innerHTML=[['mix','🎲 Mezcla'],['u','Busca U'],['v','Busca V'],['t','Busca T'],['sl','🔍 Sin letras']].map(function(x){return '<button class="'+(S.mode==x[0]?'on':'')+'" onclick="setMode(\''+x[0]+'\')">'+x[1]+'</button>'}).join('');
 $('sc').textContent='Aciertos: '+S.ok+' · Racha: '+S.streak}
